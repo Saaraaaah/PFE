@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if map_path %}
+    <img src="{{ map_path }}" alt="Captured Map">
+{% endif %}
+<form action="{% url 'signup' %}" method="post">
+    {% csrf_token %} 
+    <form action="{% url 'signup' %}" method="post">
+        {% csrf_token %}
+        <select name="location_option">
+          <option value="posta">posta</option>
+          <option value="Mobilis">Mobilis</option>
+          <option value="Algerie_Telecom">Algerie_Telecom</option>
+        </select>
+        <button type="submit" name="key">search</button>
+      </form>
+      
+</form>
+{{map|safe}}
+{% endblock %}
