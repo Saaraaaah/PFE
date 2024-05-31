@@ -123,6 +123,5 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-#Abdelftah Changes 
 GDAL_LIBRARY_PATH = r'C:\OSGeo4W\bin\gdal309'
 GEOS_LIBRARY_PATH =  r'C:\OSGeo4W\bin\geos_c'
