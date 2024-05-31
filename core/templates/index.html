@@ -3,18 +3,67 @@
 {% if map_path %}
     <img src="{{ map_path }}" alt="Captured Map">
 {% endif %}
-<form action="{% url 'signup' %}" method="post">
-    {% csrf_token %} 
-    <form action="{% url 'signup' %}" method="post">
-        {% csrf_token %}
-        <select name="location_option">
-          <option value="posta">posta</option>
-          <option value="Mobilis">Mobilis</option>
-          <option value="Algerie_Telecom">Algerie_Telecom</option>
-        </select>
-        <button type="submit" name="key">search</button>
-      </form>
-      
+<form action="{% url 'get-less-rout' %}" method="post">
+  {% csrf_token %}
+  <select name="location_option">
+    <option value="posta">posta</option>
+    <option value="Mobilis">Mobilis</option>
+    <option value="Algerie_Telecom">Algerie_Telecom</option>
+
+  </select>
+  
+  
+
+
+ 
+  <input type="hidden" id="latitude" name="latitude">
+  <input type="hidden" id="longitude" name="longitude">
+  <button type="button" onclick="getLocation()">Get Location</button>
+  
+  <button type="submit"onclick="getLocation()" name="key">search</button>
 </form>
+
+
+      
+<script>
+  function getLocation() {
+      if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(showPosition, showError);
+      } else {
+          alert("Geolocation is not supported by this browser.");
+      }
+  }
+
+  function showPosition(position) {
+      var latitude = position.coords.latitude;
+      var longitude = position.coords.longitude;
+      console.log(latitude,longitude)
+     
+      document.getElementById('latitude').value = latitude;
+      document.getElementById('longitude').value = longitude;
+  }
+
+  function showError(error) {
+      switch(error.code) {
+          case error.PERMISSION_DENIED:
+              alert("User denied the request for Geolocation.");
+              break;
+          case error.POSITION_UNAVAILABLE:
+              alert("Location information is unavailable.");
+              break;
+          case error.TIMEOUT:
+              alert("The request to get user location timed out.");
+              break;
+          case error.UNKNOWN_ERROR:
+              alert("An unknown error occurred.");
+              break;
+      }
+  }
+</script>
+</head>
+<body>
+<button onclick="getLocation()">Show me who I am</button>
+</body>
+
 {{map|safe}}
 {% endblock %}
