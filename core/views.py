@@ -9,7 +9,7 @@ import random #utilisé pour générer des couleurs aléatoires dans le code.
 from django.contrib.auth import authenticate,login,logout #Fournit des fonctions d'authentification des utilisateurs (connexion, déconnexion).
 from django.contrib.auth.models import User #importe le modèle User pour la gestion des utilisateurs.
 from folium.plugins import MousePosition ,MiniMap,MeasureControl #plugins supplémentaires pour afficher la position de la souris
-from geopy.distance import distance
+from geopy.distance import distance ,geodesic
 from django.template.loader import render_to_string
 from folium.plugins import Draw
 from folium.plugins import Search
@@ -176,8 +176,8 @@ def generate_map(latitude=36.1867,logitude=3.8480,start_point=None,end_point=Non
         midpoint=None
         if start_point and end_point and data_route:
     # Créez la carte de base centrée sur des coordonnées spécifiques avec le niveau de zoom et le contrôle de l'échelle
-            midpoint_lat = (start_point[0] + end_point[0]) / 2
-            midpoint_lon = (start_point[1] + end_point[1]) / 2
+            midpoint_lat = (float(start_point[0]) + float(end_point[0])) / 2
+            midpoint_lon = (float(start_point[1]) + float(end_point[1])) / 2
             midpoint = (midpoint_lat, midpoint_lon)
         
         if print == True:
@@ -596,25 +596,64 @@ def generate_map(latitude=36.1867,logitude=3.8480,start_point=None,end_point=Non
             folium.LayerControl(position='topleft').add_to(map)
         folium.LatLngPopup().add_to(map)
         return map._repr_html_()
+def get_less_rout(request):
+    if request.method=='POST':
+        _type=request.POST.get('location_option')
+        if _type=='posta':
+            query=Posta.objects.all()
+        elif _type =='Mobilis':
+            query=Mobilis.objects.all()
+        elif _type == 'Algerie_Telecom':
+             query=Algerie_Telecom.objects.all()  
 
+        
+        
+        
+        
+        
+        import requests
+        distances = []
+        current_latitude=request.POST.get('latitude')
+        current_longitude=request.POST.get('longitude')
+        posta=Posta.objects.all()
+        for po in posta:
+            direct_distance = geodesic((current_latitude,current_longitude), (po.latitude,po.longitude)).kilometers
+            distances.append((po,direct_distance))
+        Sorted_des=sorted(distances,key=lambda x: x[1])
+        lest_3_direct_destanc=Sorted_des[3:]
+        routs=[]
+        for ro,des in lest_3_direct_destanc :
+            osrm_url = f"http://router.project-osrm.org/route/v1/driving/{current_longitude},{current_latitude};{ro.longitude},{ro.latitude}?steps=true&geometries=geojson"
+            response = requests.get(osrm_url)
+            end_point=(ro.latitude,ro.longitude)
+            data = response.json()
+            if 'routes' in data and len(data['routes']) > 0:
+                route_distance = data['routes'][0]['distance']   
+                routs.append((data,route_distance,end_point))
+        less_ruot=min(routs, key=lambda x: x[1])
+        data_route= less_ruot[0]['routes'][0]['geometry']
+        start_point=(current_latitude,current_longitude)
+        end_point=less_ruot[2]
+        map=generate_map(print=False,start_point=start_point,end_point=end_point,data_route=data_route)
+        
 
+        context = {
+        'map': map
+        }
+    
+        return render(request, 'index.html', context)
+    return HttpResponse('errore')
+    
+    return 
 
 
 def index(request):
 
     map= generate_map(print=False)
 
-   
-
     context = {
         'map': map
     }
-    
-
-      # Save the map as PDF (optional)
-   # with open('map.pdf', 'wb') as f:
-    # f.write(HTML(string=map).write_pdf())
-
     
     return render(request, 'index.html', context)
 
